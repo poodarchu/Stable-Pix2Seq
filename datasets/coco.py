@@ -6,6 +6,8 @@ Mostly copy-paste from https://github.com/pytorch/vision/blob/13b35ff/references
 """
 from pathlib import Path
 
+import numpy as np
+
 import torch
 import torch.utils.data
 import torchvision
@@ -120,19 +122,15 @@ def make_coco_transforms(image_set):
         T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    scales = [480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800]
+    scales = np.arange(240, 1600).tolist()
 
     if image_set == 'train':
         return T.Compose([
             T.RandomHorizontalFlip(),
-            T.RandomSelect(
-                T.RandomResize(scales, max_size=1333),
-                T.Compose([
-                    T.RandomResize([400, 500, 600]),
-                    T.RandomSizeCrop(384, 600),
-                    T.RandomResize(scales, max_size=1333),
-                ])
-            ),
+            T.RandomResize(scales),
+            T.RandomSizeCrop(240, 1600),
+            T.RandomResize([800, ], max_size=1333),
+            T.RandomDistortion(0.5, 0.5, 0.5, 0.5),
             normalize,
         ])
 

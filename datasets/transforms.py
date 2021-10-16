@@ -9,6 +9,9 @@ import torch
 import torchvision.transforms as T
 import torchvision.transforms.functional as F
 
+import numpy as np
+import cv2
+
 from util.box_ops import box_xyxy_to_cxcywh
 from util.misc import interpolate
 
@@ -256,6 +259,22 @@ class Normalize(object):
             boxes = boxes / torch.tensor([w, h, w, h], dtype=torch.float32)
             target["boxes"] = boxes
         return image, target
+
+
+class RandomDistortion(object):
+    """
+    Distort image w.r.t hue, saturation and exposure.
+    """
+
+    def __init__(self, brightness=0, contrast=0, saturation=0, hue=0, prob=0.5):
+        self.prob = prob
+        self.tfm = T.ColorJitter(brightness, contrast, saturation, hue)
+
+    def __call__(self, img, target=None):
+        if np.random.random() < self.prob:
+            return self.tfm(img), target
+        else:
+            return img, target
 
 
 class Compose(object):
